@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/dictionary.db:/app/backend/dictionary.db
+      - ./dictionary.json:/app/backend/dictionary.json:ro
+    environment:
+      - DATABASE_URL=sqlite:////app/backend/dictionary.db
+    restart: unless-stopped
+

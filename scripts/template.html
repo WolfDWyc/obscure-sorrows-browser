@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Dictionary of Obscure Sorrows</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #f5f1e8;
+            --bg-secondary: #fefcf8;
+            --bg-tertiary: #faf8f4;
+            --bg-hover: #f9f7f3;
+            --text-primary: #2c2c2c;
+            --text-secondary: #6b5d4f;
+            --text-muted: #5a4a3a;
+            --border-color: #d4c4b0;
+            --border-light: #e8e0d6;
+            --accent: #8b7862;
+            --accent-dark: #654321;
+            --accent-light: #9d7a5a;
+            --star-color: #d4a574;
+            --star-hover: #f4a460;
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #1a1815;
+            --bg-secondary: #24211d;
+            --bg-tertiary: #2a2723;
+            --bg-hover: #2f2c28;
+            --text-primary: #e8e4dd;
+            --text-secondary: #c4b8a8;
+            --text-muted: #a89985;
+            --border-color: #3d3830;
+            --border-light: #35312a;
+            --accent: #8b7862;
+            --accent-dark: #a68b6b;
+            --accent-light: #9d7a5a;
+            --star-color: #d4a574;
+            --star-hover: #f4a460;
+        }
+        
+        body {
+            font-family: 'Merriweather', Georgia, serif;
+            line-height: 1.8;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(139, 120, 98, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(101, 67, 33, 0.08) 0%, transparent 50%);
+            min-height: 100vh;
+            padding-bottom: 3rem;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        [data-theme="dark"] body {
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(139, 120, 98, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(101, 67, 33, 0.05) 0%, transparent 50%);
+        }
+        
+        .header {
+            background: rgba(254, 252, 248, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem 1rem;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        
+        [data-theme="dark"] .header {
+            background: rgba(36, 33, 29, 0.95);
+        }
+        
+        .header.collapsed {
+            padding: 1rem;
+        }
+        
+        .header.collapsed .header-title-section {
+            display: none;
+        }
+        
+        .header.collapsed .header-controls {
+            display: none;
+        }
+        
+        .header-title-section {
+            transition: opacity 0.3s, max-height 0.3s;
+        }
+        
+        .mobile-expand-btn {
+            display: none;
+            background: var(--accent);
+            color: var(--bg-secondary);
+            border: 2px solid var(--accent-dark);
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Merriweather', serif;
+            font-weight: 500;
+            flex-shrink: 0;
+            min-width: 40px;
+        }
+        
+        .mobile-expand-btn:hover {
+            background: var(--accent-dark);
+        }
+        
+        .mobile-controls-row {
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 0.5rem;
+            flex-wrap: nowrap;
+        }
+        
+        .mobile-controls-row .btn {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .mobile-collapse-btn {
+            display: none;
+            background: var(--accent);
+            color: var(--bg-secondary);
+            border: 2px solid var(--accent-dark);
+            padding: 0.5rem 0.8rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Merriweather', serif;
+            font-weight: 500;
+            flex-shrink: 0;
+            min-width: 40px;
+        }
+        
+        .mobile-collapse-btn:hover {
+            background: var(--accent-dark);
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-dark);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+        
+        .header-controls {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: flex-end;
+        }
+        
+        .theme-toggle {
+            background: var(--accent);
+            color: var(--bg-secondary);
+            border: 2px solid var(--accent-dark);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Merriweather', serif;
+            font-weight: 500;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--accent-dark);
+        }
+        
+        .header-checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-family: 'Merriweather', serif;
+        }
+        
+        .header-checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .controls .btn {
+            flex: 0 1 auto;
+        }
+        
+        .btn {
+            background: var(--accent);
+            color: var(--bg-secondary);
+            border: 2px solid var(--accent-dark);
+            padding: 0.7rem 1.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-family: 'Merriweather', serif;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+        
+        .word-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            scroll-margin-top: 120px;
+            transition: box-shadow 0.3s, transform 0.3s, background 0.3s, border-color 0.3s;
+        }
+        
+        [data-theme="dark"] .word-card {
+            background: var(--bg-secondary);
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+        
+        .word-card:hover {
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        [data-theme="dark"] .word-card:hover {
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        }
+        
+        .word-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-dark) 50%, var(--accent) 100%);
+        }
+        
+         .word-header {
+             border-bottom: 1px solid var(--border-color);
+             padding-bottom: 1rem;
+             margin-bottom: 1.5rem;
+             position: relative;
+         }
+         
+         .word-header-content {
+             flex: 1;
+         }
+         
+         .word-title {
+             font-family: 'Playfair Display', serif;
+             font-size: 2.2rem;
+             color: var(--accent-dark);
+             margin-bottom: 0.6rem;
+             font-weight: 700;
+             letter-spacing: -0.3px;
+             display: flex;
+             align-items: center;
+             gap: 0.5rem;
+             flex-wrap: wrap;
+         }
+         
+         .etymology-icon {
+             font-size: 1.1rem;
+             color: var(--accent);
+             cursor: pointer;
+             opacity: 0.6;
+             transition: opacity 0.2s, transform 0.2s;
+             user-select: none;
+             line-height: 1;
+             display: inline-flex;
+             align-items: center;
+             justify-content: center;
+             width: 1.5rem;
+             height: 1.5rem;
+             border-radius: 50%;
+             background: var(--bg-hover);
+             border: 1px solid var(--accent);
+         }
+         
+         .etymology-icon:hover {
+             opacity: 1;
+             transform: scale(1.1);
+             background: var(--accent);
+             color: var(--bg-secondary);
+         }
+         
+         .etymology-modal {
+             display: none;
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background: rgba(44, 44, 44, 0.85);
+             z-index: 1000;
+             overflow-y: auto;
+         }
+         
+         .etymology-modal.show {
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             padding: 2rem;
+         }
+         
+         .etymology-content {
+             background: var(--bg-secondary);
+             border: 2px solid var(--accent);
+             border-radius: 8px;
+             padding: 2rem;
+             max-width: 600px;
+             width: 90%;
+             max-height: 80vh;
+             overflow-y: auto;
+             position: relative;
+             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+         }
+         
+         .etymology-content h3 {
+             font-family: 'Playfair Display', serif;
+             color: var(--accent-dark);
+             margin-top: 0;
+             margin-bottom: 1rem;
+             font-size: 1.5rem;
+         }
+         
+         .etymology-content .etymology-text {
+             font-size: 1rem;
+             color: var(--text-primary);
+             font-style: italic;
+             line-height: 1.6;
+         }
+         
+         .etymology-content .close-btn {
+             position: absolute;
+             top: 1rem;
+             right: 1rem;
+             background: transparent;
+             border: none;
+             font-size: 2rem;
+             color: var(--text-secondary);
+             cursor: pointer;
+             line-height: 1;
+             padding: 0;
+             width: 2rem;
+             height: 2rem;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             transition: color 0.2s;
+         }
+         
+         .etymology-content .close-btn:hover {
+             color: var(--accent);
+         }
+         
+         .word-meta {
+             display: flex;
+             flex-wrap: wrap;
+             gap: 1rem;
+             font-size: 0.85rem;
+             color: var(--text-secondary);
+             line-height: 1.4;
+         }
+         
+         .meta-item {
+             display: flex;
+             align-items: center;
+             gap: 0.4rem;
+         }
+         
+         .meta-label {
+             font-weight: 600;
+             color: var(--accent);
+             font-style: italic;
+         }
+         
+         .rating-stars {
+             position: absolute;
+             top: 0;
+             right: 0;
+             display: flex;
+             gap: 0.05rem;
+             direction: rtl;
+             align-items: flex-start;
+             z-index: 10;
+         }
+         
+         .star {
+             font-size: 2.5rem;
+             color: var(--border-color);
+             cursor: pointer;
+             transition: all 0.2s;
+             user-select: none;
+             line-height: 0.8;
+             touch-action: manipulation;
+             position: relative;
+             display: inline-block;
+         }
+         
+         /* Half-filled star: show left half colored, right half gray */
+         .star.half {
+             color: var(--border-color);
+             position: relative;
+         }
+         
+         .star.half::after {
+             content: '★';
+             position: absolute;
+             left: 0;
+             top: 0;
+             width: 100%;
+             height: 100%;
+             color: var(--accent);
+             /* Clip to show left half (for half-filled star) */
+             clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+             pointer-events: none;
+         }
+         
+         /* Full star: whole star is colored */
+         .star.full {
+             color: var(--accent);
+         }
+        
+        .star:hover,
+        .star:hover ~ .star {
+            color: var(--star-hover);
+        }
+        
+        .star.full ~ .star {
+            color: var(--star-color);
+        }
+        
+        .star.half ~ .star {
+            color: var(--star-color);
+        }
+        
+        .definition {
+            font-size: 1.15rem;
+            line-height: 2;
+            color: var(--text-primary);
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent);
+            border-radius: 2px;
+            font-style: italic;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        
+        .example-sentences {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            transition: border-color 0.3s;
+        }
+        
+        .example-sentences h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--accent-dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .sentence {
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            background: var(--bg-hover);
+            border-radius: 2px;
+            border-left: 2px solid var(--accent);
+            font-size: 1rem;
+            line-height: 1.9;
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+        }
+        
+        .tag {
+            background: var(--bg-tertiary);
+            color: var(--accent-dark);
+            padding: 0.4rem 1rem;
+            border-radius: 2px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        
+         .word-number {
+             position: absolute;
+             top: 1.5rem;
+             left: 1.5rem;
+             background: var(--accent);
+             color: var(--bg-secondary);
+             padding: 0.4rem 0.9rem;
+             border-radius: 2px;
+             font-size: 0.85rem;
+             font-weight: 600;
+             font-family: 'Playfair Display', serif;
+             border: 1px solid var(--accent-dark);
+             transition: background 0.3s, color 0.3s, border-color 0.3s;
+         }
+        
+        .index-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 44, 44, 0.85);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .index-content {
+            background: var(--bg-secondary);
+            margin: 2rem auto;
+            max-width: 700px;
+            border-radius: 2px;
+            padding: 0;
+            max-height: 85vh;
+            overflow: hidden;
+            border: 2px solid var(--accent);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transition: background 0.3s, border-color 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+         .index-header {
+             position: sticky;
+             top: 0;
+             background: var(--bg-secondary);
+             z-index: 10;
+             border-bottom: 2px solid var(--border-color);
+             padding: 1rem 2rem;
+             transition: background 0.3s, border-color 0.3s;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             position: relative;
+         }
+         
+         .index-controls {
+             display: flex;
+             gap: 1rem;
+             align-items: center;
+         }
+         
+         .index-control-group {
+             display: inline-flex;
+             align-items: center;
+             background: var(--bg-primary);
+             padding: 0.15rem;
+             border-radius: 8px;
+             border: 1px solid var(--border-color);
+             flex-shrink: 0;
+             height: fit-content;
+         }
+         
+         .index-control-group label {
+             font-size: 0.7rem;
+             color: var(--text-secondary);
+             text-transform: uppercase;
+             letter-spacing: 0.5px;
+             font-weight: 600;
+             padding: 0.5rem 0.6rem;
+             white-space: nowrap;
+             border-right: 1px solid var(--border-color);
+             margin-right: 0.15rem;
+             line-height: 1;
+         }
+         
+         .index-control-btn {
+             padding: 0.5rem 0.8rem;
+             background: transparent;
+             color: var(--text-secondary);
+             border: none;
+             border-radius: 5px;
+             font-size: 0.8rem;
+             cursor: pointer;
+             transition: all 0.2s;
+             font-family: 'Merriweather', serif;
+             white-space: nowrap;
+             margin: 0 0.05rem;
+             line-height: 1.2;
+         }
+         
+         .index-control-btn:hover {
+             background: var(--bg-hover);
+             color: var(--text-primary);
+         }
+         
+         .index-control-btn.active {
+             background: var(--accent);
+             color: var(--bg-secondary);
+             font-weight: 600;
+         }
+         
+         .index-header .close-btn {
+             position: absolute;
+             top: 1rem;
+             right: 1rem;
+             flex-shrink: 0;
+         }
+        
+        .index-list-container {
+            overflow-y: auto;
+            flex: 1;
+            padding: 1.5rem 2.5rem 2.5rem;
+        }
+        
+        .index-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .index-item {
+            padding: 0.7rem;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.95rem;
+        }
+        
+        .index-item:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-color);
+        }
+        
+        .index-rating {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-style: italic;
+            transition: color 0.3s;
+        }
+        
+        .index-rating.has-rating {
+            color: var(--star-color);
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: var(--accent);
+            color: var(--bg-secondary);
+            border: 2px solid var(--accent-dark);
+            width: 36px;
+            height: 36px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .close-btn:hover {
+            background: var(--accent-dark);
+        }
+        
+         @media (max-width: 768px) {
+             .index-header {
+                 padding: 0.75rem 1rem;
+                 flex-wrap: wrap;
+                 justify-content: center;
+             }
+             
+             .index-controls {
+                 gap: 0.5rem;
+                 flex-wrap: wrap;
+                 justify-content: center;
+             }
+             
+             .index-control-group {
+                 padding: 0.1rem;
+             }
+             
+             .index-control-group label {
+                 font-size: 0.65rem;
+                 padding: 0.4rem 0.5rem;
+             }
+             
+             .index-control-btn {
+                 padding: 0.4rem 0.6rem;
+                 font-size: 0.75rem;
+             }
+             
+             .index-header .close-btn {
+                 width: 28px;
+                 height: 28px;
+                 font-size: 1.2rem;
+                 top: 0.75rem;
+                 right: 0.75rem;
+             }
+             
+             .index-list-container {
+                 padding: 1rem 1.5rem 1.5rem;
+             }
+             
+             .index-list {
+                 grid-template-columns: 1fr;
+             }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .word-title {
+                font-size: 1.6rem;
+            }
+            
+            .word-card {
+                padding: 1.8rem;
+            }
+            
+             .word-header {
+                 padding-top: 2.5rem;
+             }
+             
+             .rating-stars {
+                 top: 0;
+                 right: 0;
+             }
+             
+             .star {
+                 font-size: 2.2rem;
+             }
+             
+            .definition {
+                font-size: 0.9rem;
+                padding: 1.2rem;
+                line-height: 1.6;
+            }
+            
+            .word-meta {
+                font-size: 0.8rem;
+            }
+            
+            .etymology-icon {
+                font-size: 1rem;
+                width: 1.3rem;
+                height: 1.3rem;
+            }
+            
+            .etymology-content {
+                padding: 1.5rem;
+                max-width: 90%;
+            }
+            
+            .example-sentences h3 {
+                font-size: 1rem;
+            }
+            
+            .sentence {
+                font-size: 0.85rem;
+                padding: 0.8rem 1rem;
+            }
+            
+            .tag {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.7rem;
+            }
+            
+            .index-list {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .header-controls {
+                position: static;
+                flex-direction: row;
+                justify-content: center;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .theme-toggle {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            .mobile-collapse-btn {
+                display: block !important;
+            }
+            
+            .mobile-expand-btn {
+                display: block !important;
+            }
+            
+            .header:not(.collapsed) .mobile-controls-row {
+                display: none !important;
+            }
+            
+            .header.collapsed .mobile-controls-row {
+                display: flex !important;
+            }
+            
+            .header.collapsed .controls {
+                display: none !important;
+            }
+            
+            .header.collapsed .header-title-section {
+                display: none !important;
+            }
+            
+            .header.collapsed .header-controls {
+                display: none !important;
+            }
+            
+            .header.collapsed .mobile-collapse-btn {
+                display: none !important;
+            }
+            
+             .word-card {
+                 padding: 1.2rem;
+             }
+             
+             .word-header {
+                 padding-top: 2rem;
+                 padding-bottom: 1rem;
+                 margin-bottom: 1rem;
+             }
+             
+             .word-meta {
+                 flex-direction: column;
+                 gap: 0.3rem;
+                 font-size: 0.7rem;
+             }
+             
+             .meta-item {
+                 gap: 0.3rem;
+             }
+             
+             .word-number {
+                 top: 1rem;
+                 left: 1rem;
+                 font-size: 0.75rem;
+                 padding: 0.3rem 0.6rem;
+             }
+             
+             .rating-stars {
+                 top: 0;
+                 right: 0;
+                 gap: 0.05rem;
+             }
+             
+             .star {
+                 font-size: 2rem;
+             }
+             
+             .definition {
+                 font-size: 0.85rem;
+                 padding: 1rem;
+                 line-height: 1.6;
+                 margin: 1rem 0;
+             }
+             
+             .etymology-icon {
+                 font-size: 0.9rem;
+                 width: 1.2rem;
+                 height: 1.2rem;
+             }
+             
+             .etymology-content {
+                 padding: 1rem;
+             }
+             
+             .etymology-content h3 {
+                 font-size: 1.2rem;
+             }
+             
+             .etymology-content .etymology-text {
+                 font-size: 0.9rem;
+             }
+             
+             .example-sentences {
+                 margin-top: 1rem;
+                 padding-top: 1rem;
+             }
+             
+             .example-sentences h3 {
+                 font-size: 0.9rem;
+                 margin-bottom: 0.8rem;
+             }
+             
+             .sentence {
+                 font-size: 0.8rem;
+                 padding: 0.7rem 0.9rem;
+                 margin: 0.5rem 0;
+                 line-height: 1.6;
+             }
+             
+             .tags {
+                 margin-top: 1rem;
+                 gap: 0.4rem;
+             }
+             
+             .tag {
+                 font-size: 0.7rem;
+                 padding: 0.25rem 0.6rem;
+             }
+            
+            .controls {
+                gap: 0.4rem;
+            }
+            
+            .controls .btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .mobile-controls-row {
+                gap: 0.3rem;
+            }
+            
+            .mobile-controls-row .btn {
+                padding: 0.5rem 0.7rem;
+                font-size: 0.85rem;
+                min-width: 0;
+                white-space: nowrap;
+            }
+            
+            .mobile-controls-row .mobile-expand-btn {
+                flex: 0 0 auto;
+                min-width: auto;
+                padding: 0.5rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header" id="header">
+        <div class="header-controls">
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">☀️ Light</button>
+            <div class="header-checkbox-wrapper">
+                <input type="checkbox" id="excludeRated" checked>
+                <label for="excludeRated">Skip rated words</label>
+            </div>
+            <button class="btn" onclick="exportRatings()" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Export</button>
+            <button class="btn" onclick="document.getElementById('importFile').click()" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Import</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importRatings(event)">
+        </div>
+        <div class="header-title-section">
+            <h1>The Dictionary of Obscure Sorrows</h1>
+            <p>a poetic collection naming the emotions we feel but struggle to express</p>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="scrollToRandom()">Random Word</button>
+            <button class="btn index-btn" onclick="showIndex()">Index</button>
+            <button class="mobile-collapse-btn" onclick="toggleHeader()" id="collapseBtn">☰</button>
+        </div>
+        <div class="mobile-controls-row">
+            <button class="btn" onclick="scrollToRandom()">Random Word</button>
+            <button class="btn index-btn" onclick="showIndex()">Index</button>
+            <button class="mobile-expand-btn" onclick="toggleHeader()" id="expandBtn">✕</button>
+        </div>
+    </div>
+    
+    <div class="container">
+
+        {% for word in words %}
+        <div class="word-card" id="word-{{ word.index }}" data-word="{{ word.word_name_lower }}">
+            <div class="word-number">#{{ word.index }}</div>
+            <div class="word-header">
+                <div class="rating-stars" data-word-id="{{ word.index }}">
+                    <span class="star" data-star-num="5">★</span>
+                    <span class="star" data-star-num="4">★</span>
+                    <span class="star" data-star-num="3">★</span>
+                    <span class="star" data-star-num="2">★</span>
+                    <span class="star" data-star-num="1">★</span>
+                </div>
+                <div class="word-header-content">
+                    <h2 class="word-title">
+                        {{ word.word_name }}
+                        {% if word.etymology %}
+                        <span class="etymology-icon" onclick="showEtymology({{ word.index }})" title="Show etymology" data-etymology="{{ word.etymology_attr }}">ℹ</span>
+                        {% endif %}
+                    </h2>
+                    <div class="word-meta">
+                        {% if word.part_of_speech %}<div class="meta-item"><span class="meta-label">Part of Speech:</span> {{ word.part_of_speech }}</div>{% endif %}
+                        {% if word.chapter %}<div class="meta-item"><span class="meta-label">Chapter:</span> {{ word.chapter }}</div>{% endif %}
+                        {% if word.concept %}<div class="meta-item"><span class="meta-label">Concept:</span> {{ word.concept }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% if word.definition %}<div class="definition">{{ word.definition }}</div>{% endif %}
+            {% if word.sentences %}
+            <div class="example-sentences"><h3>Example Sentences</h3>
+                {% for sentence in word.sentences %}
+                <div class="sentence">{{ sentence }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if word.tags %}
+            <div class="tags">
+                {% for tag in word.tags %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+{% endfor %}
+</div>
+
+    </div>
+    
+    <div class="index-modal" id="indexModal">
+        <div class="index-content">
+            <div class="index-header">
+                <div class="index-controls">
+                    <div class="index-control-group">
+                        <label>Sort</label>
+                        <button class="index-control-btn active" data-sort="index" onclick="setSort('index')">Index</button>
+                        <button class="index-control-btn" data-sort="highest" onclick="setSort('highest')">Highest</button>
+                        <button class="index-control-btn" data-sort="lowest" onclick="setSort('lowest')">Lowest</button>
+                    </div>
+                    <div class="index-control-group">
+                        <label>Filter</label>
+                        <button class="index-control-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+                        <button class="index-control-btn" data-filter="rated" onclick="setFilter('rated')">Rated</button>
+                        <button class="index-control-btn" data-filter="unrated" onclick="setFilter('unrated')">Unrated</button>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeIndex()">&times;</button>
+            </div>
+            <div class="index-list-container">
+                <div class="index-list" id="indexList">
+                {% for word in words %}
+                <div class="index-item" data-word-id="{{ word.index }}" onclick="scrollToWord({{ word.index }})"><span>{{ word.index }}. {{ word.word_name }}</span><span class="index-rating" id="index-rating-{{ word.index }}"></span></div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const totalWords = {{ total_words }};
+        const STORAGE_KEY = 'obscure_sorrows_ratings';
+        const THEME_KEY = 'obscure_sorrows_theme';
+
+        
+        // Word name to index mapping
+        const wordToIndex = {{ word_to_index_js|safe }};
+        const indexToWord = {{ index_to_word_js|safe }};
+
+        
+        // Theme management
+        function loadTheme() {
+            const stored = localStorage.getItem(THEME_KEY);
+            return stored || 'dark'; // Default to dark mode
+        }
+        
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem(THEME_KEY, theme);
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+            }
+        }
+        
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+        
+        // Initialize theme (default to dark)
+        setTheme(loadTheme());
+        
+        // Show etymology in modal
+        function showEtymology(wordId) {
+            const icon = document.querySelector(`#word-${wordId} .etymology-icon`);
+            if (!icon) return;
+            
+            const etymology = icon.getAttribute('data-etymology');
+            const wordCard = document.getElementById(`word-${wordId}`);
+            const wordName = wordCard ? wordCard.querySelector('.word-title').textContent.trim().replace('ℹ', '').trim() : `Word #${wordId}`;
+            
+            if (etymology) {
+                document.getElementById('etymologyWordName').textContent = wordName;
+                document.getElementById('etymologyText').textContent = etymology;
+                document.getElementById('etymologyModal').classList.add('show');
+            }
+        }
+        
+        // Close etymology modal
+        function closeEtymology() {
+            document.getElementById('etymologyModal').classList.remove('show');
+        }
+        
+        // Close etymology modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('etymologyModal');
+            if (e.target === modal) {
+                closeEtymology();
+            }
+        });
+        
+        // Close etymology modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('etymologyModal');
+                if (modal.classList.contains('show')) {
+                    closeEtymology();
+                }
+            }
+        });
+        
+        // Header collapse/expand for mobile
+        function toggleHeader() {
+            const header = document.getElementById('header');
+            const expandBtn = document.getElementById('expandBtn');
+            const collapseBtn = document.getElementById('collapseBtn');
+            if (header.classList.contains('collapsed')) {
+                header.classList.remove('collapsed');
+                if (expandBtn) expandBtn.textContent = '✕';
+            } else {
+                header.classList.add('collapsed');
+                if (expandBtn) expandBtn.textContent = '✕';
+            }
+        }
+        
+        // Load ratings from localStorage
+        function loadRatings() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : {};
+        }
+        
+        // Save ratings to localStorage
+        function saveRatings(ratings) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(ratings));
+        }
+        
+        // Get rating for a word
+        function getRating(wordId) {
+            const ratings = loadRatings();
+            return ratings[wordId] || 0;
+        }
+        
+        // Set rating for a word
+        function setRating(wordId, rating) {
+            const ratings = loadRatings();
+            ratings[wordId] = rating;
+            saveRatings(ratings);
+            updateStarDisplay(wordId, rating);
+            updateIndexRating(wordId, rating);
+        }
+        
+         // Update star display
+         function updateStarDisplay(wordId, rating) {
+             const stars = document.querySelectorAll(`#word-${wordId} .rating-stars .star`);
+             stars.forEach((star) => {
+                 const starNum = parseInt(star.getAttribute('data-star-num'));
+                 const fullRating = starNum;
+                 const halfRating = starNum - 0.5;
+                 
+                 star.classList.remove('full', 'half');
+                 
+                 if (rating >= fullRating) {
+                     star.classList.add('full');
+                 } else if (rating >= halfRating) {
+                     star.classList.add('half');
+                 }
+             });
+         }
+        
+        // Update index rating display
+        function updateIndexRating(wordId, rating) {
+            const indexRatingEl = document.getElementById(`index-rating-${wordId}`);
+            if (indexRatingEl) {
+                // Treat 0 as unrated (no rating)
+                if (rating > 0) {
+                    const fullStars = Math.floor(rating);
+                    const hasHalf = rating % 1 !== 0;
+                    let display = '★'.repeat(fullStars);
+                    if (hasHalf) {
+                        display += '½';
+                    }
+                    indexRatingEl.textContent = display;
+                    indexRatingEl.classList.add('has-rating');
+                } else {
+                    indexRatingEl.textContent = '';
+                    indexRatingEl.classList.remove('has-rating');
+                }
+            }
+        }
+        
+         // Check if a word is rated (rating > 0)
+         function isRated(wordId) {
+             const rating = getRating(wordId);
+             return rating > 0;
+         }
+         
+         let currentSort = 'index';
+         let currentFilter = 'all';
+         
+         function setSort(sortBy) {
+             currentSort = sortBy;
+             // Update button states
+             document.querySelectorAll('[data-sort]').forEach(btn => {
+                 btn.classList.toggle('active', btn.getAttribute('data-sort') === sortBy);
+             });
+             applyIndexFilters();
+         }
+         
+         function setFilter(filterBy) {
+             currentFilter = filterBy;
+             // Update button states
+             document.querySelectorAll('[data-filter]').forEach(btn => {
+                 btn.classList.toggle('active', btn.getAttribute('data-filter') === filterBy);
+             });
+             applyIndexFilters();
+         }
+         
+         // Apply sorting and filtering to index
+         function applyIndexFilters() {
+             const indexList = document.getElementById('indexList');
+             const items = Array.from(indexList.querySelectorAll('.index-item'));
+             
+             // Filter items
+             let filteredItems = items;
+             if (currentFilter === 'rated') {
+                 filteredItems = items.filter(item => {
+                     const wordId = parseInt(item.getAttribute('data-word-id'));
+                     return isRated(wordId);
+                 });
+             } else if (currentFilter === 'unrated') {
+                 filteredItems = items.filter(item => {
+                     const wordId = parseInt(item.getAttribute('data-word-id'));
+                     return !isRated(wordId);
+                 });
+             }
+             
+             // Sort items
+             filteredItems.sort((a, b) => {
+                 const wordIdA = parseInt(a.getAttribute('data-word-id'));
+                 const wordIdB = parseInt(b.getAttribute('data-word-id'));
+                 const ratingA = getRating(wordIdA);
+                 const ratingB = getRating(wordIdB);
+                 
+                 if (currentSort === 'index') {
+                     return wordIdA - wordIdB;
+                 } else if (currentSort === 'highest') {
+                     // Rated items first, then by rating descending
+                     if (ratingA > 0 && ratingB > 0) {
+                         return ratingB - ratingA;
+                     } else if (ratingA > 0) {
+                         return -1;
+                     } else if (ratingB > 0) {
+                         return 1;
+                     } else {
+                         return wordIdA - wordIdB;
+                     }
+                 } else if (currentSort === 'lowest') {
+                     // Rated items first, then by rating ascending
+                     if (ratingA > 0 && ratingB > 0) {
+                         return ratingA - ratingB;
+                     } else if (ratingA > 0) {
+                         return -1;
+                     } else if (ratingB > 0) {
+                         return 1;
+                     } else {
+                         return wordIdA - wordIdB;
+                     }
+                 }
+                 return 0;
+             });
+             
+             // Hide all items first
+             items.forEach(item => {
+                 item.style.display = 'none';
+             });
+             
+             // Show filtered and sorted items
+             filteredItems.forEach(item => {
+                 item.style.display = '';
+             });
+             
+             // Re-append in sorted order
+             filteredItems.forEach(item => {
+                 indexList.appendChild(item);
+             });
+         }
+        
+        // Initialize all ratings on page load
+        function initializeRatings() {
+            for (let i = 1; i <= totalWords; i++) {
+                const rating = getRating(i);
+                updateStarDisplay(i, rating);
+                updateIndexRating(i, rating);
+            }
+        }
+        
+        // Set up star click handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRatings();
+            
+             // Add click handlers to all stars
+             document.querySelectorAll('.rating-stars').forEach(starsContainer => {
+                 const wordId = parseInt(starsContainer.getAttribute('data-word-id'));
+                 const stars = starsContainer.querySelectorAll('.star');
+                
+                stars.forEach(star => {
+                    const handleClick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const starNum = parseInt(this.getAttribute('data-star-num'));
+                        const rect = this.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const width = rect.width;
+                        
+                        // Click on left half of element = half star (starNum - 0.5)
+                        // Click on right half of element = full star (starNum)
+                        const isLeftHalf = clickX < width / 2;
+                        const rating = isLeftHalf ? starNum - 0.5 : starNum;
+                        
+                        const currentRating = getRating(wordId);
+                        // If clicking the same rating, unrate it
+                        if (Math.abs(currentRating - rating) < 0.01) {
+                            setRating(wordId, 0);
+                        } else {
+                            setRating(wordId, rating);
+                        }
+                    };
+                    
+                    star.addEventListener('click', handleClick);
+                    
+                    // Also handle touch events for mobile
+                    star.addEventListener('touchend', function(e) {
+                        const touch = e.changedTouches[0];
+                        const rect = this.getBoundingClientRect();
+                        const clickX = touch.clientX - rect.left;
+                        const width = rect.width;
+                        
+                        const starNum = parseInt(this.getAttribute('data-star-num'));
+                        // Click on left half of element = half star (starNum - 0.5)
+                        // Click on right half of element = full star (starNum)
+                        const isLeftHalf = clickX < width / 2;
+                        const rating = isLeftHalf ? starNum - 0.5 : starNum;
+                        
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const currentRating = getRating(wordId);
+                        // If clicking the same rating, unrate it
+                        if (Math.abs(currentRating - rating) < 0.01) {
+                            setRating(wordId, 0);
+                        } else {
+                            setRating(wordId, rating);
+                        }
+                    });
+                });
+            });
+        });
+        
+        function scrollToRandom() {
+            const excludeRated = document.getElementById('excludeRated').checked;
+            const ratings = loadRatings();
+            
+            let availableWords = [];
+            if (excludeRated) {
+                // Only include words without ratings (treat 0 as unrated)
+                for (let i = 1; i <= totalWords; i++) {
+                    const rating = ratings[i];
+                    if (!rating || rating === 0) {
+                        availableWords.push(i);
+                    }
+                }
+            } else {
+                // Include all words
+                for (let i = 1; i <= totalWords; i++) {
+                    availableWords.push(i);
+                }
+            }
+            
+            if (availableWords.length === 0) {
+                alert('All words have been rated! Uncheck "Skip rated words" to see all words.');
+                return;
+            }
+            
+            const randomIndex = availableWords[Math.floor(Math.random() * availableWords.length)];
+            scrollToWord(randomIndex);
+        }
+        
+         function scrollToWord(index) {
+             const element = document.getElementById(`word-${index}`);
+             if (element) {
+                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                 // Highlight the word briefly using CSS variable
+                 const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                 element.style.transition = 'background-color 0.5s';
+                 element.style.backgroundColor = isDark ? 'var(--bg-hover)' : 'var(--bg-hover)';
+                 setTimeout(() => {
+                     element.style.backgroundColor = '';
+                 }, 2000);
+             }
+             closeIndex();
+         }
+        
+         function showIndex() {
+             // Refresh index ratings before showing
+             for (let i = 1; i <= totalWords; i++) {
+                 const rating = getRating(i);
+                 updateIndexRating(i, rating);
+             }
+             // Reset filters and apply them
+             currentSort = 'index';
+             currentFilter = 'all';
+             document.querySelectorAll('[data-sort]').forEach(btn => {
+                 btn.classList.toggle('active', btn.getAttribute('data-sort') === 'index');
+             });
+             document.querySelectorAll('[data-filter]').forEach(btn => {
+                 btn.classList.toggle('active', btn.getAttribute('data-filter') === 'all');
+             });
+             applyIndexFilters();
+             document.getElementById('indexModal').style.display = 'block';
+         }
+        
+        function closeIndex() {
+            document.getElementById('indexModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('indexModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeIndex();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeIndex();
+            }
+        });
+        
+        // Export ratings to JSON file (using word names as keys)
+        function exportRatings() {
+            const ratings = loadRatings();
+            const wordBasedRatings = {};
+            
+            // Convert index-based ratings to word-based ratings
+            for (let i = 1; i <= totalWords; i++) {
+                if (ratings[i] && ratings[i] > 0) {
+                    const wordName = indexToWord[i];
+                    if (wordName) {
+                        wordBasedRatings[wordName] = ratings[i];
+                    }
+                }
+            }
+            
+            // Create JSON string
+            const jsonData = JSON.stringify(wordBasedRatings, null, 2);
+            
+            // Create download link
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'obscure_sorrows_ratings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Import ratings from JSON file (convert word names to indices)
+        function importRatings(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const wordBasedRatings = JSON.parse(e.target.result);
+                    const indexBasedRatings = {};
+                    
+                    // Convert word-based ratings to index-based ratings
+                    for (const [wordName, rating] of Object.entries(wordBasedRatings)) {
+                        const wordLower = wordName.toLowerCase();
+                        const index = wordToIndex[wordLower];
+                        if (index && rating > 0 && rating <= 5) {
+                            indexBasedRatings[index] = parseInt(rating);
+                        }
+                    }
+                    
+                    // Save imported ratings
+                    saveRatings(indexBasedRatings);
+                    
+                    // Update all displays
+                    initializeRatings();
+                    
+                    // Show success message
+                    alert(`Successfully imported ratings for ${Object.keys(indexBasedRatings).length} word(s).`);
+                    
+                    // Reset file input
+                    event.target.value = '';
+                } catch (error) {
+                    alert('Error importing ratings: ' + error.message);
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+
+    
+    <div class="etymology-modal" id="etymologyModal">
+        <div class="etymology-content">
+            <button class="close-btn" onclick="closeEtymology()">&times;</button>
+            <h3 id="etymologyWordName"></h3>
+            <div class="etymology-text" id="etymologyText"></div>
+        </div>
+    </div>
+</body>
+</html>
