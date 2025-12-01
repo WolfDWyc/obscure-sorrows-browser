@@ -1,24 +1,55 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 import Header from './components/Header';
 import WordCard from './components/WordCard';
 import NavigationButtons from './components/NavigationButtons';
 import RatingButtons from './components/RatingButtons';
+import LeaderboardButton from './components/LeaderboardButton';
+import LeaderboardModal from './components/LeaderboardModal';
+import { slugify } from './utils/urlUtils';
 
 const API_BASE = process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api';
 
-function App() {
+function WordPage() {
+  const { wordSlug } = useParams();
+  const navigate = useNavigate();
   const [currentWord, setCurrentWord] = useState(null);
-  const [wordHistory, setWordHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  // Load initial random word
   useEffect(() => {
-    loadRandomWord();
-  }, []);
+    loadWordFromSlug(wordSlug);
+  }, [wordSlug]);
+
+  const loadWordFromSlug = async (slug) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // React Router already decodes the URL parameter, so we have the word name
+      // Axios will automatically encode it when making the request
+      const wordName = slug;
+      
+      // Load word by name (API accepts both ID and name)
+      const response = await axios.get(`${API_BASE}/word/${wordName}`, {
+        withCredentials: true
+      });
+      const word = response.data;
+      setCurrentWord(word);
+    } catch (err) {
+      console.error('Error loading word:', err);
+      if (err.response?.status === 404) {
+        setError('Word not found');
+      } else {
+        setError('Failed to load word. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadRandomWord = async () => {
     try {
@@ -28,19 +59,10 @@ function App() {
         withCredentials: true
       });
       const word = response.data;
-      setCurrentWord(word);
-      // Add to history, maintaining previous history
-      setWordHistory(prev => {
-        const exists = prev.some(w => w.id === word.id);
-        if (exists) {
-          const index = prev.findIndex(w => w.id === word.id);
-          setHistoryIndex(index);
-          return prev;
-        }
-        const newHistory = [...prev, word];
-        setHistoryIndex(newHistory.length - 1);
-        return newHistory;
-      });
+      
+      // Update URL to the new word
+      const wordSlug = slugify(word.word);
+      navigate(`/word/${wordSlug}`, { replace: false });
     } catch (err) {
       console.error('Error loading word:', err);
       setError('Failed to load word. Please try again.');
@@ -67,72 +89,58 @@ function App() {
   };
 
   const handleNext = async () => {
-    // Load a random unrated word instead of sequential
+    // Load a random unrated word and update URL
     await loadRandomWord();
   };
 
-  const handlePrev = async () => {
-    if (historyIndex > 0) {
-      const prevWord = wordHistory[historyIndex - 1];
-      setCurrentWord(prevWord);
-      setHistoryIndex(historyIndex - 1);
-    } else if (historyIndex === 0 && wordHistory.length > 1) {
-      // Load previous word from API
-      const response = await axios.get(`${API_BASE}/prev-word-id/${currentWord.id}`, {
-        withCredentials: true
-      });
-      const prevWordId = response.data.word_id;
-      const prevWord = await loadWordById(prevWordId);
-      
-      if (prevWord) {
-        const newHistory = [prevWord, ...wordHistory];
-        setWordHistory(newHistory);
-        setHistoryIndex(0);
-        setCurrentWord(prevWord);
-      }
-    }
-  };
-
   const handleRate = async (rating) => {
-    if (!currentWord || currentWord.user_rating !== null) return;
+    if (!currentWord) return;
+    
+    // If clicking the same rating, unrate it
+    if (currentWord.user_rating === rating) {
+      rating = null;
+    }
     
     try {
-      await axios.post(
-        `${API_BASE}/rate`,
-        {
-          word_id: currentWord.id,
-          rating: rating
-        },
-        {
-          withCredentials: true
-        }
-      );
+      if (rating === null) {
+        // Unrate - delete the rating
+        await axios.delete(
+          `${API_BASE}/rate/${currentWord.id}`,
+          {
+            withCredentials: true
+          }
+        );
+      } else {
+        // Rate or update rating
+        await axios.post(
+          `${API_BASE}/rate`,
+          {
+            word_id: currentWord.id,
+            rating: rating
+          },
+          {
+            withCredentials: true
+          }
+        );
+      }
       
       // Reload word to get updated stats
       const updatedWord = await loadWordById(currentWord.id);
       if (updatedWord) {
         setCurrentWord(updatedWord);
-        // Update in history
-        const newHistory = [...wordHistory];
-        newHistory[historyIndex] = updatedWord;
-        setWordHistory(newHistory);
       }
     } catch (err) {
       console.error('Error rating word:', err);
-      if (err.response?.status === 400 && err.response?.data?.detail === 'Word already rated') {
-        // Word was already rated, reload it
-        const updatedWord = await loadWordById(currentWord.id);
-        if (updatedWord) {
-          setCurrentWord(updatedWord);
-        }
-      }
     }
   };
 
   if (loading && !currentWord) {
     return (
       <div className="app-container">
-        <div className="loading">Loading...</div>
+        <Header />
+        <div className="app-content-wrapper">
+          <div className="loading">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -140,35 +148,87 @@ function App() {
   if (error && !currentWord) {
     return (
       <div className="app-container">
-        <div className="error">{error}</div>
-        <button onClick={loadRandomWord} className="retry-button">Try Again</button>
+        <Header />
+        <div className="app-content-wrapper">
+          <div className="error">{error}</div>
+          <button onClick={loadRandomWord} className="retry-button">Try Again</button>
+        </div>
       </div>
     );
   }
 
+  const handleWordClick = (wordSlug) => {
+    navigate(`/word/${wordSlug}`);
+  };
+
   return (
     <div className="app-container">
       <Header />
-      {currentWord && (
-        <>
-          <div className="word-content">
-            <WordCard word={currentWord} />
-          </div>
-          <div className="bottom-actions">
-            <RatingButtons
-              word={currentWord}
-              onRate={handleRate}
-            />
-            <NavigationButtons
-              onNext={handleNext}
-              onPrev={handlePrev}
-              canGoPrev={historyIndex > 0}
-              loading={loading}
-            />
-          </div>
-        </>
-      )}
+      <div className="app-content-wrapper">
+        {currentWord && (
+          <>
+            <div className="word-content">
+              <WordCard word={currentWord} />
+            </div>
+            <div className="bottom-actions">
+              <RatingButtons
+                word={currentWord}
+                onRate={handleRate}
+              />
+              <NavigationButtons
+                onNext={handleNext}
+                loading={loading}
+              />
+            </div>
+          </>
+        )}
+      </div>
+      <LeaderboardButton onClick={() => setShowLeaderboard(true)} />
+      <LeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        onWordClick={handleWordClick}
+      />
     </div>
+  );
+}
+
+function HomePage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to a random word on initial load
+    const loadRandomAndRedirect = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/random-word`, {
+          withCredentials: true
+        });
+        const word = response.data;
+        const wordSlug = slugify(word.word);
+        navigate(`/word/${wordSlug}`, { replace: true });
+      } catch (err) {
+        console.error('Error loading random word:', err);
+      }
+    };
+    loadRandomAndRedirect();
+  }, [navigate]);
+
+  return (
+    <div className="app-container">
+      <Header />
+      <div className="app-content-wrapper">
+        <div className="loading">Loading...</div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/word/:wordSlug" element={<WordPage />} />
+    </Routes>
   );
 }
 

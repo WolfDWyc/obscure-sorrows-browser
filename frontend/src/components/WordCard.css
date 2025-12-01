@@ -65,7 +65,7 @@
 }
 
 .word-definition {
-  font-size: 1rem;
+  font-size: 1.15rem;
   line-height: 1.7;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
@@ -79,8 +79,8 @@
 
 .example-sentences h3 {
   font-family: 'Playfair Display', serif;
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
   color: var(--text-secondary);
 }
 
@@ -90,11 +90,12 @@
 }
 
 .example-sentences li {
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
   padding-left: 1.5rem;
   position: relative;
   color: var(--text-primary);
-  line-height: 1.7;
+  line-height: 1.5;
+  font-size: 0.9rem;
 }
 
 .example-sentences li::before {
@@ -274,7 +275,7 @@
   }
 
   .word-definition {
-    font-size: 0.9rem;
+    font-size: 1rem;
     line-height: 1.6;
     margin-bottom: 1rem;
   }
@@ -285,15 +286,16 @@
   }
 
   .example-sentences h3 {
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
   }
 
   .example-sentences li {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     padding-left: 1rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+    line-height: 1.4;
   }
 
   .word-tags {

@@ -32,7 +32,7 @@ const WordCard = ({ word }) => {
         <div className="etymology-modal" onClick={() => setShowEtymology(false)}>
           <div className="etymology-content" onClick={(e) => e.stopPropagation()}>
             <button className="etymology-close" onClick={() => setShowEtymology(false)}>×</button>
-            <h3>Etymology</h3>
+            <h3>Details</h3>
             {word.part_of_speech && (
               <div className="etymology-pos">{word.part_of_speech}</div>
             )}

@@ -6,7 +6,6 @@
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  position: relative;
 }
 
 .nav-btn {
@@ -41,22 +40,6 @@
   transform: translateY(0);
 }
 
-.nav-btn.prev-btn {
-  background: transparent;
-  color: var(--text-secondary);
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  position: absolute;
-  left: 0;
-  border: 1px solid var(--border-color);
-}
-
-.nav-btn.prev-btn:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border-color: var(--accent);
-}
-
 .nav-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -67,11 +50,6 @@
     padding: 0.75rem 1.5rem;
     font-size: 0.95rem;
     min-width: 140px;
-  }
-
-  .nav-btn.prev-btn {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
   }
 }
 

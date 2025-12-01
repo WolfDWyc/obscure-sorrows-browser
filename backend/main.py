@@ -191,20 +191,28 @@ async def get_random_word(
     return response
 
 
-@app.get("/api/word/{word_id}", response_model=WordResponse)
+@app.get("/api/word/{word_identifier}", response_model=WordResponse)
 async def get_word(
-    word_id: int,
+    word_identifier: str,
     response: Response,
     user_id: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
-    """Get a specific word by ID."""
+    """Get a specific word by ID (integer) or name (string)."""
     user_id = get_or_create_user_id(user_id)
     if not user_id:
         user_id = str(uuid.uuid4())
         response.set_cookie(key="user_id", value=user_id, max_age=31536000, httponly=True, samesite="lax")
     
-    word = db.query(Word).filter(Word.id == word_id).first()
+    # Try to parse as integer ID first
+    word = None
+    if word_identifier.isdigit():
+        word = db.query(Word).filter(Word.id == int(word_identifier)).first()
+    
+    # If not found by ID, try by word name
+    if not word:
+        word = db.query(Word).filter(Word.word == word_identifier).first()
+    
     if not word:
         raise HTTPException(status_code=404, detail="Word not found")
     
@@ -243,7 +251,7 @@ async def rate_word(
     user_id: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
-    """Rate a word. Can only rate once per word."""
+    """Rate a word. Can update existing rating."""
     user_id = get_or_create_user_id(user_id)
     
     # Set cookie if not present
@@ -267,20 +275,56 @@ async def rate_word(
     ).first()
     
     if existing_rating:
-        raise HTTPException(status_code=400, detail="Word already rated")
-    
-    # Create new rating
-    rating = Rating(
-        user_id=user_id,
-        word_id=rating_req.word_id,
-        rating=rating_req.rating
-    )
-    db.add(rating)
-    db.commit()
+        # Update existing rating
+        existing_rating.rating = rating_req.rating
+        db.commit()
+    else:
+        # Create new rating
+        rating = Rating(
+            user_id=user_id,
+            word_id=rating_req.word_id,
+            rating=rating_req.rating
+        )
+        db.add(rating)
+        db.commit()
     
     # Return updated stats
     stats = get_rating_stats(db, rating_req.word_id)
     return {"message": "Rating saved", "stats": stats}
+
+
+@app.delete("/api/rate/{word_id}")
+async def unrate_word(
+    word_id: int,
+    response: Response,
+    user_id: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    """Remove rating for a word."""
+    user_id = get_or_create_user_id(user_id)
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    # Check if word exists
+    word = db.query(Word).filter(Word.id == word_id).first()
+    if not word:
+        raise HTTPException(status_code=404, detail="Word not found")
+    
+    # Find and delete the rating
+    existing_rating = db.query(Rating).filter(
+        Rating.user_id == user_id,
+        Rating.word_id == word_id
+    ).first()
+    
+    if existing_rating:
+        db.delete(existing_rating)
+        db.commit()
+    
+    # Get updated stats
+    stats = get_rating_stats(db, word_id)
+    
+    return {"message": "Rating removed", "stats": stats}
 
 
 @app.get("/api/next-word-id/{current_id}")
@@ -349,6 +393,76 @@ async def get_rated_words(
     
     rated_ids = [r.word_id for r in db.query(Rating.word_id).filter(Rating.user_id == user_id).all()]
     return {"rated_word_ids": rated_ids}
+
+
+class LeaderboardEntry(BaseModel):
+    word_id: int
+    word: str
+    score: int  # likes - dislikes (net score)
+    thumbs_up: int
+    thumbs_down: int
+    hyphen: int
+    total_ratings: int
+
+
+@app.get("/api/leaderboard", response_model=List[LeaderboardEntry])
+async def get_leaderboard(
+    db: Session = Depends(get_db)
+):
+    """Get leaderboard of all words sorted by Bayesian average score."""
+    # Get all words with their rating stats
+    words = db.query(Word).all()
+    
+    # Calculate global average for Bayesian prior
+    all_stats = [get_rating_stats(db, word.id) for word in words]
+    total_all_ratings = sum(s.get("total", 0) for s in all_stats)
+    total_all_net = sum(s.get("thumbs_up", 0) - s.get("thumbs_down", 0) for s in all_stats)
+    
+    # Prior: average net score across all words (or 0 if no ratings)
+    prior_rating = (total_all_net / total_all_ratings) if total_all_ratings > 0 else 0.0
+    prior_weight = 10  # Minimum number of ratings to reach prior confidence
+    
+    leaderboard = []
+    for word in words:
+        stats = get_rating_stats(db, word.id)
+        thumbs_up = stats.get("thumbs_up", 0)
+        thumbs_down = stats.get("thumbs_down", 0)
+        total = stats.get("total", 0)
+        
+        # Calculate Bayesian average score
+        if total > 0:
+            # Net score normalized: (thumbs_up - thumbs_down) / total
+            average_rating = (thumbs_up - thumbs_down) / total
+            # Bayesian average: weighted average between word's average and prior
+            bayesian_score = (total * average_rating + prior_weight * prior_rating) / (total + prior_weight)
+        else:
+            # No ratings: use a very low score so words with any ratings rank higher
+            bayesian_score = -1000.0
+        
+        # Store original net score for display, but use Bayesian score for sorting
+        net_score = thumbs_up - thumbs_down
+        
+        # Store as tuple with Bayesian score for sorting
+        leaderboard.append((
+            bayesian_score,  # For sorting
+            LeaderboardEntry(
+                word_id=word.id,
+                word=word.word,
+                score=net_score,
+                thumbs_up=thumbs_up,
+                thumbs_down=thumbs_down,
+                hyphen=stats.get("hyphen", 0),
+                total_ratings=total
+            )
+        ))
+    
+    # Sort by Bayesian score (descending), then by total_ratings (descending) for ties
+    leaderboard.sort(key=lambda x: (x[0], x[1].total_ratings), reverse=True)
+    
+    # Extract just the entries (without Bayesian scores)
+    return [entry for _, entry in leaderboard]
+    
+    return leaderboard
 
 
 # Serve React app in production

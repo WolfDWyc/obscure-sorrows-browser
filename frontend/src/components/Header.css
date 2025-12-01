@@ -21,13 +21,14 @@
 .header-subtitle {
   font-family: 'Merriweather', serif;
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--accent);
   margin: 0.5rem 0 0 0;
-  font-style: italic;
+  font-style: bold;
 }
 
 .header-link {
   color: var(--accent);
+  font-style: italic;
   text-decoration: none;
   transition: color 0.2s;
 }
