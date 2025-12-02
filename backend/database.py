@@ -64,9 +64,10 @@ class Rating(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String, index=True, nullable=False)  # Cookie-based user ID
     word_id = Column(Integer, index=True, nullable=False)
-    rating = Column(Integer, nullable=False)  # -1 (thumbs down), 0 (hyphen), 1 (thumbs up)
+    rating_type = Column(String, nullable=False, default='overall')  # 'overall', 'relatability', 'usefulness', 'name'
+    rating = Column(Integer, nullable=False)  # 1-5 stars (was -1/0/1 for old system)
     
-    # Ensure one rating per user per word
+    # Ensure one rating per user per word per type
     __table_args__ = (
         {"sqlite_autoincrement": True},
     )

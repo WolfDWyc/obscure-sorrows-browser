@@ -1,0 +1,128 @@
+.detailed-rating-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.detailed-rating-modal-content {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.detailed-rating-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.detailed-rating-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.detailed-rating-close svg {
+  width: 24px;
+  height: 24px;
+}
+
+.detailed-rating-word-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 2rem 0;
+  text-align: center;
+}
+
+.detailed-rating-main {
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.detailed-rating-sub-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detailed-rating-sub-item {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.detailed-rating-label {
+  font-family: 'Merriweather', serif;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 120px;
+  text-align: left;
+}
+
+.detailed-rating-main .detailed-rating-label {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .detailed-rating-modal-content {
+    padding: 1.5rem;
+    max-height: 95vh;
+  }
+
+  .detailed-rating-word-name {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .detailed-rating-main {
+    margin-bottom: 2rem;
+  }
+
+  .detailed-rating-sub-ratings {
+    gap: 1.25rem;
+  }
+
+  .detailed-rating-sub-item {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .detailed-rating-label {
+    font-size: 0.9rem;
+    min-width: 100px;
+  }
+}
+

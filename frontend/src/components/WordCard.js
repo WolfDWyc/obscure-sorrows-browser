@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { FiInfo, FiX } from 'react-icons/fi';
 import './WordCard.css';
 
-const WordCard = ({ word }) => {
+const WordCard = ({ word, onShowDetailedRating }) => {
   const [showEtymology, setShowEtymology] = useState(false);
 
   if (!word) return null;
+  
 
   const tags = word.tags ? word.tags.split(';').map(t => t.trim()).filter(Boolean) : [];
   const sentences = word.example_sentences
@@ -89,6 +90,7 @@ const WordCard = ({ word }) => {
           ))}
         </div>
       )}
+
     </div>
   );
 };

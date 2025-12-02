@@ -5,8 +5,9 @@ import './App.css';
 import Header from './components/Header';
 import WordCard from './components/WordCard';
 import NavigationButtons from './components/NavigationButtons';
-import RatingButtons from './components/RatingButtons';
+import StarRating from './components/StarRating';
 import LeaderboardButton from './components/LeaderboardButton';
+import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import LeaderboardModal from './components/LeaderboardModal';
 import { slugify } from './utils/urlUtils';
 
@@ -22,6 +23,7 @@ function WordPage() {
 
   useEffect(() => {
     loadWordFromSlug(wordSlug);
+    setShowDetailedRatings(false); // Reset detailed ratings when word changes
   }, [wordSlug]);
 
   const loadWordFromSlug = async (slug) => {
@@ -93,19 +95,16 @@ function WordPage() {
     await loadRandomWord();
   };
 
-  const handleRate = async (rating) => {
+  const [showDetailedRatings, setShowDetailedRatings] = useState(false);
+
+  const handleRate = async (ratingType, rating) => {
     if (!currentWord) return;
-    
-    // If clicking the same rating, unrate it
-    if (currentWord.user_rating === rating) {
-      rating = null;
-    }
     
     try {
       if (rating === null) {
         // Unrate - delete the rating
         await axios.delete(
-          `${API_BASE}/rate/${currentWord.id}`,
+          `${API_BASE}/rate/${currentWord.id}?rating_type=${ratingType}`,
           {
             withCredentials: true
           }
@@ -116,7 +115,8 @@ function WordPage() {
           `${API_BASE}/rate`,
           {
             word_id: currentWord.id,
-            rating: rating
+            rating: rating,
+            rating_type: ratingType
           },
           {
             withCredentials: true
@@ -168,13 +168,70 @@ function WordPage() {
         {currentWord && (
           <>
             <div className="word-content">
-              <WordCard word={currentWord} />
+              <WordCard 
+                word={currentWord}
+              />
             </div>
             <div className="bottom-actions">
-              <RatingButtons
-                word={currentWord}
-                onRate={handleRate}
-              />
+              <div className="star-rating-wrapper">
+                <StarRating
+                  rating={currentWord.rating_stats?.overall?.user_rating}
+                  average={currentWord.rating_stats?.overall?.average || 0}
+                  total={currentWord.rating_stats?.overall?.total || 0}
+                  onRate={(rating) => handleRate('overall', rating)}
+                  size="normal"
+                  showAverage={true}
+                  averageLabel="Average"
+                />
+                {currentWord.rating_stats?.overall?.user_rating !== null && 
+                 currentWord.rating_stats?.overall?.user_rating !== undefined && (
+                  <button 
+                    className="detailed-rating-link"
+                    onClick={() => setShowDetailedRatings(!showDetailedRatings)}
+                  >
+                    Detailed ratings
+                    {showDetailedRatings ? <FiChevronUp /> : <FiChevronDown />}
+                  </button>
+                )}
+                {showDetailedRatings && currentWord.rating_stats?.overall?.user_rating !== null && 
+                 currentWord.rating_stats?.overall?.user_rating !== undefined && (
+                  <div className="detailed-ratings-expanded">
+                    <div className="detailed-rating-sub-item">
+                      <div className="detailed-rating-label">Relatability</div>
+                      <StarRating
+                        rating={currentWord.rating_stats?.relatability?.user_rating}
+                        average={currentWord.rating_stats?.relatability?.average || 0}
+                        total={currentWord.rating_stats?.relatability?.total || 0}
+                        onRate={(rating) => handleRate('relatability', rating)}
+                        size="small"
+                        showAverage={true}
+                      />
+                    </div>
+                    <div className="detailed-rating-sub-item">
+                      <div className="detailed-rating-label">Usefulness</div>
+                      <StarRating
+                        rating={currentWord.rating_stats?.usefulness?.user_rating}
+                        average={currentWord.rating_stats?.usefulness?.average || 0}
+                        total={currentWord.rating_stats?.usefulness?.total || 0}
+                        onRate={(rating) => handleRate('usefulness', rating)}
+                        size="small"
+                        showAverage={true}
+                      />
+                    </div>
+                    <div className="detailed-rating-sub-item">
+                      <div className="detailed-rating-label">Name</div>
+                      <StarRating
+                        rating={currentWord.rating_stats?.name?.user_rating}
+                        average={currentWord.rating_stats?.name?.average || 0}
+                        total={currentWord.rating_stats?.name?.total || 0}
+                        onRate={(rating) => handleRate('name', rating)}
+                        size="small"
+                        showAverage={true}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
               <NavigationButtons
                 onNext={handleNext}
                 loading={loading}

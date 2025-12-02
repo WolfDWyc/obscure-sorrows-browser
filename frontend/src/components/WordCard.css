@@ -319,3 +319,44 @@
   }
 }
 
+.detailed-rating-link {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-family: 'Merriweather', serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.2s;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.detailed-rating-link:hover {
+  color: var(--accent-light);
+  text-decoration: underline;
+}
+
+.detailed-rating-link svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+
+@media (max-width: 768px) {
+  .detailed-rating-link {
+    font-size: 0.85rem;
+  }
+  
+  .detailed-rating-link svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+

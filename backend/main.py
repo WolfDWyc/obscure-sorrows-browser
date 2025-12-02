@@ -17,6 +17,22 @@ import os
 # Initialize database
 init_db()
 
+# Migrate ratings schema if needed
+def migrate_ratings_schema():
+    """Migrate ratings from old system to new system if needed."""
+    try:
+        print("Checking rating schema...")
+        import migrate_ratings
+        migrate_ratings.migrate_ratings()
+        print("Rating schema check complete.")
+    except Exception as e:
+        print(f"Error checking rating schema: {e}")
+        import traceback
+        traceback.print_exc()
+
+# Migrate ratings on startup
+migrate_ratings_schema()
+
 # Reload word data from dictionary.json on every startup
 def sync_word_data():
     """Reload word data from dictionary.json, preserving user ratings."""
@@ -58,8 +74,7 @@ class WordResponse(BaseModel):
     concept: Optional[str]
     tags: Optional[str]
     example_sentences: Optional[str]
-    user_rating: Optional[int] = None
-    rating_stats: dict = {}
+    rating_stats: dict = {}  # Contains stats for each rating type: overall, relatability, usefulness, name
 
     class Config:
         from_attributes = True
@@ -67,15 +82,14 @@ class WordResponse(BaseModel):
 
 class RatingRequest(BaseModel):
     word_id: int
-    rating: int  # -1, 0, or 1
+    rating: int  # 1-5 stars
+    rating_type: str = 'overall'  # 'overall', 'relatability', 'usefulness', 'name'
 
 
 class RatingStats(BaseModel):
-    thumbs_down: int
-    hyphen: int
-    thumbs_up: int
+    average: float
     total: int
-    percentages: dict
+    user_rating: Optional[int] = None
 
 
 def get_or_create_user_id(user_id: Optional[str] = Cookie(None)) -> Optional[str]:
@@ -85,43 +99,39 @@ def get_or_create_user_id(user_id: Optional[str] = Cookie(None)) -> Optional[str
     return user_id
 
 
-def get_rating_stats(db: Session, word_id: int) -> dict:
-    """Get rating statistics for a word."""
-    stats = db.query(
-        func.sum(case((Rating.rating == -1, 1), else_=0)).label('thumbs_down'),
-        func.sum(case((Rating.rating == 0, 1), else_=0)).label('hyphen'),
-        func.sum(case((Rating.rating == 1, 1), else_=0)).label('thumbs_up'),
-        func.count(Rating.id).label('total')
-    ).filter(Rating.word_id == word_id).first()
+def get_rating_stats(db: Session, word_id: int, rating_type: str = 'overall', user_id: Optional[str] = None) -> dict:
+    """Get rating statistics for a word and rating type."""
+    # Get all ratings for this word and type
+    ratings_query = db.query(Rating).filter(
+        Rating.word_id == word_id,
+        Rating.rating_type == rating_type
+    )
     
-    if not stats or stats.total == 0:
+    ratings = ratings_query.all()
+    total = len(ratings)
+    
+    if total == 0:
         return {
-            "thumbs_down": 0,
-            "hyphen": 0,
-            "thumbs_up": 0,
+            "average": 0.0,
             "total": 0,
-            "percentages": {
-                "thumbs_down": 0,
-                "hyphen": 0,
-                "thumbs_up": 0
-            }
+            "user_rating": None
         }
     
-    total = stats.total or 0
-    thumbs_down = stats.thumbs_down or 0
-    hyphen = stats.hyphen or 0
-    thumbs_up = stats.thumbs_up or 0
+    # Calculate average
+    total_rating = sum(r.rating for r in ratings)
+    average = round(total_rating / total, 1)
+    
+    # Get user's rating if user_id provided
+    user_rating = None
+    if user_id:
+        user_rating_obj = ratings_query.filter(Rating.user_id == user_id).first()
+        if user_rating_obj:
+            user_rating = user_rating_obj.rating
     
     return {
-        "thumbs_down": thumbs_down,
-        "hyphen": hyphen,
-        "thumbs_up": thumbs_up,
+        "average": average,
         "total": total,
-        "percentages": {
-            "thumbs_down": round((thumbs_down / total * 100) if total > 0 else 0, 1),
-            "hyphen": round((hyphen / total * 100) if total > 0 else 0, 1),
-            "thumbs_up": round((thumbs_up / total * 100) if total > 0 else 0, 1)
-        }
+        "user_rating": user_rating
     }
 
 
@@ -137,8 +147,11 @@ async def get_random_word(
         user_id = str(uuid.uuid4())
         response.set_cookie(key="user_id", value=user_id, max_age=31536000, httponly=True, samesite="lax")
     
-    # Get all rated word IDs for this user
-    rated_word_ids = {r.word_id for r in db.query(Rating.word_id).filter(Rating.user_id == user_id).all()}
+    # Get all rated word IDs for this user (only overall ratings count)
+    rated_word_ids = {r.word_id for r in db.query(Rating.word_id).filter(
+        Rating.user_id == user_id,
+        Rating.rating_type == 'overall'
+    ).all()}
     
     # Get a random word that hasn't been rated
     query = db.query(Word)
@@ -154,16 +167,11 @@ async def get_random_word(
     if not word:
         raise HTTPException(status_code=404, detail="No words found")
     
-    # Get user's rating for this word
-    user_rating = db.query(Rating).filter(
-        Rating.user_id == user_id,
-        Rating.word_id == word.id
-    ).first()
-    
-    rating_value = user_rating.rating if user_rating else None
-    
-    # Get rating stats
-    stats = get_rating_stats(db, word.id)
+    # Get rating stats for all types
+    rating_types = ['overall', 'relatability', 'usefulness', 'name']
+    stats = {}
+    for rating_type in rating_types:
+        stats[rating_type] = get_rating_stats(db, word.id, rating_type, user_id)
     
     response = WordResponse(
         id=word.id,
@@ -175,7 +183,6 @@ async def get_random_word(
         concept=word.concept,
         tags=word.tags,
         example_sentences=word.example_sentences,
-        user_rating=rating_value,
         rating_stats=stats
     )
     
@@ -207,16 +214,11 @@ async def get_word(
     if not word:
         raise HTTPException(status_code=404, detail="Word not found")
     
-    # Get user's rating
-    user_rating = db.query(Rating).filter(
-        Rating.user_id == user_id,
-        Rating.word_id == word.id
-    ).first()
-    
-    rating_value = user_rating.rating if user_rating else None
-    
-    # Get rating stats
-    stats = get_rating_stats(db, word.id)
+    # Get rating stats for all types
+    rating_types = ['overall', 'relatability', 'usefulness', 'name']
+    stats = {}
+    for rating_type in rating_types:
+        stats[rating_type] = get_rating_stats(db, word.id, rating_type, user_id)
     
     response = WordResponse(
         id=word.id,
@@ -228,7 +230,6 @@ async def get_word(
         concept=word.concept,
         tags=word.tags,
         example_sentences=word.example_sentences,
-        user_rating=rating_value,
         rating_stats=stats
     )
     
@@ -256,13 +257,18 @@ async def rate_word(
         raise HTTPException(status_code=404, detail="Word not found")
     
     # Validate rating
-    if rating_req.rating not in [-1, 0, 1]:
-        raise HTTPException(status_code=400, detail="Rating must be -1, 0, or 1")
+    if rating_req.rating not in [1, 2, 3, 4, 5]:
+        raise HTTPException(status_code=400, detail="Rating must be 1-5 stars")
     
-    # Check if user already rated this word
+    # Validate rating type
+    if rating_req.rating_type not in ['overall', 'relatability', 'usefulness', 'name']:
+        raise HTTPException(status_code=400, detail="Invalid rating type")
+    
+    # Check if user already rated this word for this type
     existing_rating = db.query(Rating).filter(
         Rating.user_id == user_id,
-        Rating.word_id == rating_req.word_id
+        Rating.word_id == rating_req.word_id,
+        Rating.rating_type == rating_req.rating_type
     ).first()
     
     if existing_rating:
@@ -274,24 +280,26 @@ async def rate_word(
         rating = Rating(
             user_id=user_id,
             word_id=rating_req.word_id,
+            rating_type=rating_req.rating_type,
             rating=rating_req.rating
         )
         db.add(rating)
         db.commit()
     
-    # Return updated stats
-    stats = get_rating_stats(db, rating_req.word_id)
+    # Return updated stats for this rating type
+    stats = get_rating_stats(db, rating_req.word_id, rating_req.rating_type, user_id)
     return {"message": "Rating saved", "stats": stats}
 
 
 @app.delete("/api/rate/{word_id}")
 async def unrate_word(
     word_id: int,
-    response: Response,
+    rating_type: str = 'overall',
     user_id: Optional[str] = Cookie(None),
     db: Session = Depends(get_db)
 ):
     """Remove rating for a word."""
+    
     user_id = get_or_create_user_id(user_id)
     
     if not user_id:
@@ -302,10 +310,15 @@ async def unrate_word(
     if not word:
         raise HTTPException(status_code=404, detail="Word not found")
     
+    # Validate rating type
+    if rating_type not in ['overall', 'relatability', 'usefulness', 'name']:
+        raise HTTPException(status_code=400, detail="Invalid rating type")
+    
     # Find and delete the rating
     existing_rating = db.query(Rating).filter(
         Rating.user_id == user_id,
-        Rating.word_id == word_id
+        Rating.word_id == word_id,
+        Rating.rating_type == rating_type
     ).first()
     
     if existing_rating:
@@ -313,7 +326,7 @@ async def unrate_word(
         db.commit()
     
     # Get updated stats
-    stats = get_rating_stats(db, word_id)
+    stats = get_rating_stats(db, word_id, rating_type, user_id)
     
     return {"message": "Rating removed", "stats": stats}
 
@@ -389,10 +402,7 @@ async def get_rated_words(
 class LeaderboardEntry(BaseModel):
     word_id: int
     word: str
-    score: int  # likes - dislikes (net score)
-    thumbs_up: int
-    thumbs_down: int
-    hyphen: int
+    average: float
     total_ratings: int
 
 
@@ -400,60 +410,33 @@ class LeaderboardEntry(BaseModel):
 async def get_leaderboard(
     db: Session = Depends(get_db)
 ):
-    """Get leaderboard of all words sorted by Bayesian average score."""
+    """Get leaderboard of all words sorted by average rating (overall only)."""
     # Get all words with their rating stats
     words = db.query(Word).all()
     
-    # Calculate global average for Bayesian prior
-    all_stats = [get_rating_stats(db, word.id) for word in words]
-    total_all_ratings = sum(s.get("total", 0) for s in all_stats)
-    total_all_net = sum(s.get("thumbs_up", 0) - s.get("thumbs_down", 0) for s in all_stats)
-    
-    # Prior: average net score across all words (or 0 if no ratings)
-    prior_rating = (total_all_net / total_all_ratings) if total_all_ratings > 0 else 0.0
-    prior_weight = 10  # Minimum number of ratings to reach prior confidence
-    
     leaderboard = []
     for word in words:
-        stats = get_rating_stats(db, word.id)
-        thumbs_up = stats.get("thumbs_up", 0)
-        thumbs_down = stats.get("thumbs_down", 0)
+        # Only use overall rating for leaderboard
+        stats = get_rating_stats(db, word.id, 'overall')
+        average = stats.get("average", 0.0)
         total = stats.get("total", 0)
         
-        # Calculate Bayesian average score
-        if total > 0:
-            # Net score normalized: (thumbs_up - thumbs_down) / total
-            average_rating = (thumbs_up - thumbs_down) / total
-            # Bayesian average: weighted average between word's average and prior
-            bayesian_score = (total * average_rating + prior_weight * prior_rating) / (total + prior_weight)
-        else:
-            # No ratings: use a very low score so words with any ratings rank higher
-            bayesian_score = -1000.0
-        
-        # Store original net score for display, but use Bayesian score for sorting
-        net_score = thumbs_up - thumbs_down
-        
-        # Store as tuple with Bayesian score for sorting
         leaderboard.append((
-            bayesian_score,  # For sorting
+            average,  # For sorting
+            total,  # For tie-breaking
             LeaderboardEntry(
                 word_id=word.id,
                 word=word.word,
-                score=net_score,
-                thumbs_up=thumbs_up,
-                thumbs_down=thumbs_down,
-                hyphen=stats.get("hyphen", 0),
+                average=average,
                 total_ratings=total
             )
         ))
     
-    # Sort by Bayesian score (descending), then by total_ratings (descending) for ties
-    leaderboard.sort(key=lambda x: (x[0], x[1].total_ratings), reverse=True)
+    # Sort by average (descending), then by total_ratings (descending) for ties
+    leaderboard.sort(key=lambda x: (x[0], x[1]), reverse=True)
     
-    # Extract just the entries (without Bayesian scores)
-    return [entry for _, entry in leaderboard]
-    
-    return leaderboard
+    # Extract just the entries (without sorting scores)
+    return [entry for _, _, entry in leaderboard]
 
 
 # Serve React app in production
