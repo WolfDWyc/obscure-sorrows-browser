@@ -17,33 +17,24 @@ import os
 # Initialize database
 init_db()
 
-# Auto-migrate data if database is empty (first run only)
-def check_and_migrate_data():
-    """Check if database needs migration and run it if empty."""
+# Reload word data from dictionary.json on every startup
+def sync_word_data():
+    """Reload word data from dictionary.json, preserving user ratings."""
     from sqlalchemy.orm import Session
     from database import SessionLocal
     import traceback
     
     try:
-        db = SessionLocal()
-        try:
-            word_count = db.query(Word).count()
-            if word_count == 0:
-                # Database is empty, run migration
-                print("Database is empty, running initial migration...")
-                import migrate_data
-                migrate_data.migrate_data()
-                print("Migration complete.")
-            else:
-                print(f"Database already has {word_count} words, skipping migration.")
-        finally:
-            db.close()
+        print("Syncing word data from dictionary.json...")
+        import migrate_data
+        migrate_data.migrate_data()
+        print("Word data sync complete.")
     except Exception as e:
-        print(f"Error checking/migrating database: {e}")
+        print(f"Error syncing word data: {e}")
         traceback.print_exc()
 
-# Run migration check on startup (only if database is empty)
-check_and_migrate_data()
+# Sync word data on startup (preserves user ratings)
+sync_word_data()
 
 app = FastAPI(title="Dictionary of Obscure Sorrows API")
 

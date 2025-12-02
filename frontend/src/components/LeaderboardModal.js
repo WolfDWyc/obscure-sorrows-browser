@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { FiInfo, FiX } from 'react-icons/fi';
 import './LeaderboardModal.css';
 import { slugify } from '../utils/urlUtils';
 import RatingButtons from './RatingButtons';
@@ -70,7 +71,7 @@ const LeaderboardModal = ({ isOpen, onClose, onWordClick }) => {
               onClick={() => setShowInfo(!showInfo)}
               aria-label="How ranking is calculated"
             >
-              ℹ
+              <FiInfo />
             </button>
             {showInfo && (
               <div className="leaderboard-info-tooltip">
@@ -78,7 +79,9 @@ const LeaderboardModal = ({ isOpen, onClose, onWordClick }) => {
               </div>
             )}
           </div>
-          <button className="leaderboard-close" onClick={onClose} aria-label="Close">×</button>
+          <button className="leaderboard-close" onClick={onClose} aria-label="Close">
+            <FiX />
+          </button>
         </div>
         <div className="leaderboard-body">
           {loading ? (

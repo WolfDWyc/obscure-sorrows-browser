@@ -26,26 +26,46 @@ def migrate_data(json_file: str = "dictionary.json"):
     db = SessionLocal()
     
     try:
-        # Clear existing words
-        db.query(Word).delete()
-        db.commit()
+        # Upsert words (update existing or insert new)
+        # This preserves user ratings while updating word data
+        updated_count = 0
+        inserted_count = 0
         
-        # Insert words
         for word_data in words_data:
-            word = Word(
-                word=word_data.get('Word', ''),
-                definition=word_data.get('Definition', ''),
-                part_of_speech=word_data.get('Part of Speech', ''),
-                etymology=word_data.get('Etymology', ''),
-                chapter=word_data.get('Chapter', ''),
-                concept=word_data.get('Concept', ''),
-                tags=word_data.get('Tags', ''),
-                example_sentences=word_data.get('Example Sentences', '')
-            )
-            db.add(word)
+            word_name = word_data.get('Word', '')
+            if not word_name:
+                continue
+            
+            # Check if word already exists
+            existing_word = db.query(Word).filter(Word.word == word_name).first()
+            
+            if existing_word:
+                # Update existing word
+                existing_word.definition = word_data.get('Definition', '')
+                existing_word.part_of_speech = word_data.get('Part of Speech', '')
+                existing_word.etymology = word_data.get('Etymology', '')
+                existing_word.chapter = word_data.get('Chapter', '')
+                existing_word.concept = word_data.get('Concept', '')
+                existing_word.tags = word_data.get('Tags', '')
+                existing_word.example_sentences = word_data.get('Example Sentences', '')
+                updated_count += 1
+            else:
+                # Insert new word
+                word = Word(
+                    word=word_name,
+                    definition=word_data.get('Definition', ''),
+                    part_of_speech=word_data.get('Part of Speech', ''),
+                    etymology=word_data.get('Etymology', ''),
+                    chapter=word_data.get('Chapter', ''),
+                    concept=word_data.get('Concept', ''),
+                    tags=word_data.get('Tags', ''),
+                    example_sentences=word_data.get('Example Sentences', '')
+                )
+                db.add(word)
+                inserted_count += 1
         
         db.commit()
-        print(f"Successfully migrated {len(words_data)} words to database")
+        print(f"Successfully synced {len(words_data)} words: {updated_count} updated, {inserted_count} inserted")
     except Exception as e:
         db.rollback()
         print(f"Error migrating data: {e}")

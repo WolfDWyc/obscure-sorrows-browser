@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FiInfo, FiX } from 'react-icons/fi';
 import './WordCard.css';
 
 const WordCard = ({ word }) => {
@@ -21,17 +22,28 @@ const WordCard = ({ word }) => {
             onClick={() => setShowEtymology(!showEtymology)}
             aria-label="Show etymology and metadata"
           >
-            ℹ
+            <FiInfo />
           </button>
         )}
       </div>
 
-      <div className="word-definition">{word.definition}</div>
+      <div className="word-definition">
+        {word.definition.split('\n').filter(part => part.trim() !== '').map((part, index, array) => (
+          <React.Fragment key={index}>
+            <span className={index === 0 ? 'definition-main' : 'definition-secondary'}>
+              {part.trim()}
+            </span>
+            {index < array.length - 1 && ' '}
+          </React.Fragment>
+        ))}
+      </div>
 
       {showEtymology && (word.etymology || word.part_of_speech || word.chapter || word.concept) && (
         <div className="etymology-modal" onClick={() => setShowEtymology(false)}>
           <div className="etymology-content" onClick={(e) => e.stopPropagation()}>
-            <button className="etymology-close" onClick={() => setShowEtymology(false)}>×</button>
+            <button className="etymology-close" onClick={() => setShowEtymology(false)} aria-label="Close">
+              <FiX />
+            </button>
             <h3>Details</h3>
             {word.part_of_speech && (
               <div className="etymology-pos">{word.part_of_speech}</div>
